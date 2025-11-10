@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Code Generator - Claude Sonnet 4.5</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-content">
+                <h1>🚀 AI Code Generator</h1>
+                <p class="subtitle">Powered by Claude Sonnet 4.5 + LangGraph</p>
+            </div>
+            <div class="connection-status" id="connectionStatus">
+                <span class="status-indicator" id="statusIndicator"></span>
+                <span id="statusText">Connecting...</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Chat Messages -->
+            <div class="chat-container" id="chatContainer">
+                <div class="welcome-message">
+                    <h2>Welcome to AI Code Generator! 👋</h2>
+                    <p>I can help you generate complete, production-ready code from natural language descriptions.</p>
+                    <div class="examples">
+                        <h3>Try examples like:</h3>
+                        <ul>
+                            <li>"Create a FastAPI REST API for a todo list"</li>
+                            <li>"Generate a Python script to process CSV files"</li>
+                            <li>"Build a React component for a login form"</li>
+                            <li>"Create a complete Flask blog application"</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-container">
+                <textarea
+                    id="userInput"
+                    placeholder="What code would you like to generate? (Shift+Enter for new line, Enter to send)"
+                    rows="3"
+                ></textarea>
+                <button id="sendButton" onclick="sendMessage()">
+                    <span id="buttonText">Generate Code</span>
+                    <span id="buttonLoader" class="loader hidden"></span>
+                </button>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer>
+            <div class="footer-content">
+                <div class="tools-info">
+                    <span id="toolsCount">Loading tools...</span>
+                </div>
+                <div class="links">
+                    <a href="https://www.anthropic.com/claude" target="_blank">Claude AI</a>
+                    <a href="https://github.com/langchain-ai/langgraph" target="_blank">LangGraph</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
