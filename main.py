@@ -19,24 +19,16 @@ async def main():
     # Load environment variables
     load_dotenv()
 
-    # Validate API key
-    api_key = os.getenv("ANTHROPIC_API_KEY")
-    if not api_key:
-        console.print("[bold red]❌ Error: ANTHROPIC_API_KEY not found![/bold red]")
-        console.print("[yellow]Please create a .env file with your API key:[/yellow]")
-        console.print("[dim]ANTHROPIC_API_KEY=your_api_key_here[/dim]")
-        sys.exit(1)
-
     # Initialize output directory
     output_dir = os.getenv("OUTPUT_DIR", "./generated_code")
     os.makedirs(output_dir, exist_ok=True)
 
     console.print(f"[dim]📁 Output directory: {os.path.abspath(output_dir)}[/dim]")
 
-    # Create and initialize agent
-    agent = CodeGeneratorAgent()
-
     try:
+        # Create and initialize agent (API key validation happens here)
+        agent = CodeGeneratorAgent()
+
         # Initialize async resources
         await agent.initialize()
 
@@ -45,6 +37,11 @@ async def main():
 
     except KeyboardInterrupt:
         console.print("\n[yellow]👋 Goodbye![/yellow]")
+    except ValueError as e:
+        # API configuration error
+        console.print(f"\n[bold red]❌ Configuration Error:[/bold red]")
+        console.print(f"[yellow]{str(e)}[/yellow]")
+        sys.exit(1)
     except Exception as e:
         console.print(f"\n[bold red]❌ Fatal error: {str(e)}[/bold red]")
         import traceback
@@ -52,7 +49,8 @@ async def main():
         sys.exit(1)
     finally:
         # Cleanup resources
-        await agent.cleanup()
+        if 'agent' in locals():
+            await agent.cleanup()
 
 
 if __name__ == "__main__":

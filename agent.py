@@ -9,6 +9,7 @@ from typing import Annotated, Sequence, Literal
 from typing_extensions import TypedDict
 
 from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage, ToolMessage
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
@@ -36,12 +37,8 @@ class CodeGeneratorAgent:
         # Initialize console for output
         self.console = Console()
 
-        # Initialize LLM (Claude Sonnet 4.5)
-        self.llm = ChatAnthropic(
-            model="claude-sonnet-4-5-20250929",
-            temperature=0.7,
-            max_tokens=8192
-        )
+        # Initialize LLM based on environment variables
+        self.llm = self._initialize_llm()
 
         # Load tools
         self.tools = get_code_tools() + get_file_tools()
@@ -55,6 +52,45 @@ class CodeGeneratorAgent:
         self.checkpointer = None
         self._checkpointer_ctx = None
         self.agent = None
+
+    def _initialize_llm(self):
+        """Initialize LLM based on environment configuration."""
+        # Check for OpenAI-compatible API configuration
+        openai_base_url = os.getenv("OPENAI_BASE_URL")
+        openai_api_key = os.getenv("OPENAI_API_KEY")
+        openai_model = os.getenv("OPENAI_MODEL", "gpt-4")
+
+        # Check for Anthropic API configuration
+        anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+
+        # Prioritize OpenAI-compatible API if both base_url and api_key are provided
+        if openai_base_url and openai_api_key:
+            self.console.print(f"[cyan]🔧 Using OpenAI-compatible API: {openai_base_url}[/cyan]")
+            self.console.print(f"[cyan]📦 Model: {openai_model}[/cyan]")
+            return ChatOpenAI(
+                base_url=openai_base_url,
+                api_key=openai_api_key,
+                model=openai_model,
+                temperature=float(os.getenv("LLM_TEMPERATURE", "0.7")),
+                max_tokens=int(os.getenv("LLM_MAX_TOKENS", "8192"))
+            )
+        elif anthropic_api_key:
+            self.console.print("[cyan]🔧 Using Anthropic Claude API[/cyan]")
+            anthropic_model = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929")
+            self.console.print(f"[cyan]📦 Model: {anthropic_model}[/cyan]")
+            return ChatAnthropic(
+                model=anthropic_model,
+                temperature=float(os.getenv("LLM_TEMPERATURE", "0.7")),
+                max_tokens=int(os.getenv("LLM_MAX_TOKENS", "8192"))
+            )
+        else:
+            raise ValueError(
+                "No API configuration found!\n"
+                "Please set either:\n"
+                "  - OPENAI_BASE_URL and OPENAI_API_KEY (for OpenAI-compatible APIs), or\n"
+                "  - ANTHROPIC_API_KEY (for Anthropic Claude)\n"
+                "in your .env file."
+            )
 
     def _setup_workflow(self):
         """Set up the LangGraph workflow with nodes and edges."""
@@ -276,12 +312,19 @@ Remember: You're not just chatting - you're creating actual code files!
 
     def _display_banner(self):
         """Display welcome banner."""
-        banner = """
+        # Determine which LLM is being used
+        llm_provider = "AI LLM"
+        if isinstance(self.llm, ChatAnthropic):
+            llm_provider = "Claude Sonnet 4.5"
+        elif isinstance(self.llm, ChatOpenAI):
+            llm_provider = os.getenv("OPENAI_MODEL", "OpenAI-Compatible API")
+
+        banner = f"""
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
 ║   🚀  AI CODE GENERATOR  🚀                              ║
 ║                                                           ║
-║   ▸ Powered by Claude Sonnet 4.5 + LangGraph            ║
+║   ▸ Powered by {llm_provider:<30} + LangGraph   ║
 ║   ▸ Generate code from natural language                 ║
 ║   ▸ Type 'exit' or 'quit' to terminate                  ║
 ║                                                           ║

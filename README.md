@@ -1,6 +1,6 @@
 # 🚀 AI Code Generator - LangGraph Edition
 
-An intelligent code generation system that mimics Claude Code CLI using **LangGraph** for workflow orchestration, **Anthropic's Claude Sonnet 4.5** for code generation, and **FastAPI** for a modern web interface.
+An intelligent code generation system that mimics Claude Code CLI using **LangGraph** for workflow orchestration, **AI language models** (Anthropic Claude, OpenAI, or any OpenAI-compatible API), and **FastAPI** for a modern web interface.
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![LangGraph](https://img.shields.io/badge/LangGraph-0.1.0-green.svg)
@@ -10,7 +10,8 @@ An intelligent code generation system that mimics Claude Code CLI using **LangGr
 ## ✨ Features
 
 - **🧠 Agentic Architecture**: Uses LangGraph's StateGraph for intelligent decision-making
-- **🛠️ Tool-Augmented LLM**: Claude executes tools to create files, analyze code, and build projects
+- **🔌 Flexible LLM Support**: Works with Anthropic Claude, OpenAI, OpenRouter, vLLM, or any OpenAI-compatible API
+- **🛠️ Tool-Augmented LLM**: AI executes tools to create files, analyze code, and build projects
 - **💻 Dual Interface**: Both CLI (Rich terminal UI) and web-based (WebSocket streaming)
 - **💾 Stateful Conversations**: SQLite checkpointing enables context persistence across sessions
 - **🔄 Auto-Fix Mechanism**: Intelligent error recovery and self-correction
@@ -54,7 +55,7 @@ An intelligent code generation system that mimics Claude Code CLI using **LangGr
 
 ### Technology Stack
 
-- **AI/ML**: LangGraph, LangChain, Anthropic Claude Sonnet 4.5
+- **AI/ML**: LangGraph, LangChain, Anthropic Claude / OpenAI / OpenAI-compatible APIs
 - **Web Framework**: FastAPI, Uvicorn, WebSockets
 - **State Management**: AsyncSqliteSaver (LangGraph checkpointing)
 - **CLI**: Rich (beautiful terminal output)
@@ -65,7 +66,11 @@ An intelligent code generation system that mimics Claude Code CLI using **LangGr
 ### Prerequisites
 
 - Python 3.8 or higher
-- Anthropic API key ([Get one here](https://console.anthropic.com/))
+- API access to one of the following:
+  - **Anthropic Claude** ([Get API key](https://console.anthropic.com/))
+  - **OpenAI** ([Get API key](https://platform.openai.com/api-keys))
+  - **OpenRouter** ([Get API key](https://openrouter.ai/))
+  - **Any OpenAI-compatible API** (vLLM, local models, etc.)
 
 ### Setup
 
@@ -102,13 +107,31 @@ Create a `.env` file in the project root:
 cp .env.example .env
 ```
 
-Edit `.env` and add your Anthropic API key:
+Edit `.env` and choose ONE of the following options:
 
-```
-ANTHROPIC_API_KEY=your_api_key_here
+**Option A: OpenAI-Compatible API** (OpenRouter, vLLM, local models, etc.)
+```env
+OPENAI_BASE_URL=https://openrouter.ai/api/v1
+OPENAI_API_KEY=your_api_key_here
+OPENAI_MODEL=anthropic/claude-3.5-sonnet
 OUTPUT_DIR=./generated_code
 PORT=8000
 ```
+
+**Option B: Anthropic Claude** (Direct API)
+```env
+ANTHROPIC_API_KEY=your_api_key_here
+ANTHROPIC_MODEL=claude-sonnet-4-5-20250929
+OUTPUT_DIR=./generated_code
+PORT=8000
+```
+
+**Examples for different providers:**
+
+- **OpenRouter**: `OPENAI_BASE_URL=https://openrouter.ai/api/v1`
+- **Local vLLM**: `OPENAI_BASE_URL=http://localhost:8000/v1`
+- **OpenAI**: `OPENAI_BASE_URL=https://api.openai.com/v1`
+- **Any OpenAI-compatible endpoint**
 
 ## 🚀 Usage
 
@@ -242,16 +265,35 @@ with test cases for login, logout, and token validation
 
 ### Environment Variables
 
+**API Configuration (choose ONE):**
+
+**For OpenAI-Compatible APIs:**
+- `OPENAI_BASE_URL` (**required**): Base URL for the API (e.g., `https://openrouter.ai/api/v1`)
+- `OPENAI_API_KEY` (**required**): Your API key
+- `OPENAI_MODEL` (optional): Model to use (default: `gpt-4`)
+
+**For Anthropic Claude:**
 - `ANTHROPIC_API_KEY` (**required**): Your Anthropic API key
+- `ANTHROPIC_MODEL` (optional): Model to use (default: `claude-sonnet-4-5-20250929`)
+
+**General Settings:**
+- `LLM_TEMPERATURE` (optional): Temperature 0.0-1.0 (default: `0.7`)
+- `LLM_MAX_TOKENS` (optional): Maximum tokens per response (default: `8192`)
 - `OUTPUT_DIR` (optional): Directory for generated code (default: `./generated_code`)
 - `PORT` (optional): Port for web server (default: `8000`)
 
 ### Model Configuration
 
-The agent uses Claude Sonnet 4.5 with these settings:
+The system supports multiple LLM providers:
 - **Temperature**: 0.7 (balanced creativity and consistency)
 - **Max Tokens**: 8192 (supports large code files)
-- **Model**: `claude-sonnet-4-5-20250929`
+- **Supported Models**: Any OpenAI-compatible model or Anthropic Claude models
+
+**Popular Model Options:**
+- Anthropic: `claude-sonnet-4-5-20250929`, `claude-3-5-sonnet-20241022`
+- OpenAI: `gpt-4`, `gpt-4-turbo`, `gpt-3.5-turbo`
+- OpenRouter: `anthropic/claude-3.5-sonnet`, `openai/gpt-4`
+- Local/vLLM: Any model supported by your setup
 
 ## 🔄 How It Works
 
@@ -307,9 +349,19 @@ black *.py
 
 ## 🐛 Troubleshooting
 
-### "ANTHROPIC_API_KEY not found"
-- Ensure `.env` file exists and contains your API key
-- Verify `.env` is in the project root directory
+### "No API configuration found"
+This means neither API option is properly configured. Fix by:
+- Ensure `.env` file exists in the project root
+- Choose **ONE** of these options:
+  - **Option A**: Set `OPENAI_BASE_URL` AND `OPENAI_API_KEY`
+  - **Option B**: Set `ANTHROPIC_API_KEY`
+- Verify the variables are uncommented (no `#` at the start)
+
+### API key errors
+- **Anthropic**: Get your API key from [console.anthropic.com](https://console.anthropic.com/)
+- **OpenAI**: Get your API key from [platform.openai.com](https://platform.openai.com/api-keys)
+- **OpenRouter**: Get your API key from [openrouter.ai](https://openrouter.ai/)
+- Ensure no extra spaces or quotes around the API key
 
 ### "Module not found" errors
 - Run `pip install -r requirements.txt`
